@@ -1,0 +1,94 @@
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:new_app/modal.dart';
+import 'package:new_app/servic.dart';
+
+void main() {
+  runApp(
+    MaterialApp(
+      home: MyApp(),
+    ),
+  );
+}
+
+class MyApp extends StatefulWidget {
+  const MyApp({Key? key}) : super(key: key);
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  Servic httpServices = Servic();
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text("Get and Post"),
+      ),
+      body: Padding(
+        padding: EdgeInsets.all(15),
+        child: FutureBuilder(
+          future: httpServices.getData(),
+          builder: (context, snapshot) {
+            if (snapshot.hasData) {
+              List<Modal> data = snapshot.data as List<Modal>;
+              return ListView(
+                  children: data
+                      .map((e) => ListTile(
+                            title: Text(e.id.toString()),
+                            subtitle: Text(e.tital!),
+                          ))
+                      .toList());
+            }
+            return Center(
+              child: CircularProgressIndicator(),
+            );
+          },
+        ),
+      ),
+    );
+  }
+}
+
+
+// servic class.........................
+
+import 'dart:convert';
+
+import 'package:http/http.dart';
+import 'package:new_app/modal.dart';
+
+class Servic {
+  Future<List<Modal>> getData() async {
+    var responce =
+        await get(Uri.https("jsonplaceholder.typicode.com", "albums"));
+
+    if (responce.statusCode == 200) {
+      List<dynamic> body = jsonDecode(responce.body);
+      List<Modal> data = body.map((e) => Modal.fromJson(e)).toList();
+      return data;
+    }
+    else
+      {
+        throw "can't get data...";
+      }
+  }
+}
+
+
+// modal class .............................
+
+class Modal {
+  final int? u_id;
+  final int? id;
+  final String? tital;
+
+  Modal(this.u_id, this.id, this.tital);
+
+  factory Modal.fromJson(Map<String, dynamic> data) {
+    return Modal(data['userId'], data['id'], data['title']);
+  }
+}
+
